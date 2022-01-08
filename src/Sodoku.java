@@ -72,72 +72,134 @@ public class Sodoku
         // get list of possible numbers from row, col, and box
         // guess from that list, using random to choose the index of the list
 
-        // create copy of board to make changes to
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                copy[r][c] = board[r][c];
-            }
-        }
-
         int iterations = 0;
 
-        // get possible values for default board
-        possibleValues = getPossibleValuesArray(board);
+        // if a cell has one possible answer, insert it.
+        // keep doing this until it is solved or there are no more cells with one possible answer
+        while (!allBoxesValid(board) && !allRowsAndColsValid(board) && reductionAvail(board)) {
+            // get possible values for default board
+            possibleValues = getPossibleValuesArray(board);
 
-
-        while (!allBoxesValid(copy) && !allRowsAndColsValid(copy)) {
-            // TODO:
-            // get a 9x9 array that holds possible values for each square.
-            // loop through all of the possibilities instead of using randomness to find the answer.
-            // basically:
-            // get possible values for each square.
-            // if a square has only one possible value, use that value and put it into the square.
-            // refresh the possible values for all squares.
-            // repeat until answer is found.
-
-            boolean flag = false;
             for (int r = 0; r < 9; r++) {
                 for (int c = 0; c < 9; c++) {
-                    if (copy[r][c] == 0) { // only do this if the square is empty
+                    if (board[r][c] == 0) { // only do this if the square is empty
                         if (possibleValues[r][c].size() == 1) {
-                            //System.out.println(r + " " + c + ": " + possibleValues[r][c]);
                             // insert single value into the square
-                            copy[r][c] = (int) possibleValues[r][c].get(0);
-                            flag = true;
-                            //System.out.println(copy[r][c]);
+                            board[r][c] = (int) possibleValues[r][c].get(0);
+                            // System.out.println("Filling " + (int) possibleValues[r][c].get(0) + " into " + r + " " + c);
                         }
                     }
                 }
             }
-            // refresh the possible values for all squares
-            possibleValues = getPossibleValuesArray(copy);
-
-            // if the puzzle doesn't let you eliminate one square at one point, you have
-            // to choose one value and test if it works.
-            // TODO: write this later
-            if (flag) {
-                for (int r = 0; r < 9; r++) {
-                    for (int c = 0; c < 9; c++) {
-                        if (copy[r][c] == 0) {
-                            if (possibleValues[r][c] [...])
-                        }
-                    }
-                }
-            }
-
-
-
-
-
             iterations++;
-            System.out.println("iteration #" + iterations);
-
-            // Steps: uncomment below
-            //System.out.println(toString(copy));
         }
 
-        System.out.println("total iterations: " + iterations);
-        return copy;
+        // if solved, then exit
+        // otherwise use a different algorithm to solve it
+        if (allBoxesValid(board) && allRowsAndColsValid(board)) {
+            System.out.println("Solved in " + iterations + " iterations.");
+            return board;
+        }
+        else {
+            // create copy of board to make changes to
+            for (int r = 0; r < 9; r++) {
+                for (int c = 0; c < 9; c++) {
+                    copy[r][c] = board[r][c];
+                }
+            }
+
+        System.out.println("Backtracking algorithm: ");
+        return backtrack(copy, 0, 0);
+        }
+    }
+
+    // Checks a board to see if there are cells with only one possible answer in them
+    public boolean reductionAvail(int[][] b) {
+        // get possible values for each cell
+        ArrayList[][] pv = getPossibleValuesArray(b);
+
+        // iterate through
+        // return true if there is a cell with only one possible answer in it.
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if (b[r][c] == 0 && pv[r][c].size() == 1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public int[][] backtrack(int[][] b, int r, int c) {
+        ArrayList[][] pv = getPossibleValuesArray(b);
+
+
+        // go to a cell
+        // if it is solidified, leave it
+        // if it is not
+            // use first possible value
+            // check validity of puzzle
+                // if valid
+                    // go to next cell
+                    // repeat steps
+                // if not valid
+                    // use next possible values
+                    // if none of the values work, then dead end.
+                    // go back to the previous cell and increment index of its value by one.
+
+
+
+        // if the cell is null
+        if (b[r][c] == 0) {
+            // loop through available
+            for (int i = 0; i < pv[r][c].size(); i++) {
+                b[r][c] = (int) pv[r][c].get(i);
+
+                // final cell, check the answer
+                if (r == 8 && c == 8) {
+                    if (allBoxesValid(b) && allRowsAndColsValid(b)) {
+                        return b;
+                    }
+                }
+                // not the final cell
+                else {
+                    if (c == 8) {
+                        if (backtrack(b, r + 1, 0) != null) {
+                            return backtrack(b, r + 1, 0);
+                        }
+                    } else {
+                        if (backtrack(b, r + 1, c + 1) != null) {
+                            return backtrack(b, r + 1, c + 1);
+                        }
+                    }
+                }
+            }
+
+            if (r == 8 && c == 8) {
+                return null;
+            }
+        }
+        else {
+            if (r == 8 && c == 8) {
+
+            }
+        }
+
+        return null;
+    }
+
+    // Checks the validity of the puzzle by making sure that there is no cell that has no possible values
+    // False positives are possible.
+    public boolean validPuzzle(int[][] b) {
+        ArrayList[][] pv = getPossibleValuesArray(b);
+        for (int r = 0; r < 9; r++) {
+            for (int c = 0; c < 9; c++) {
+                if (b[r][c] == 0 && pv[r][c].size() == 0)
+                    return false;
+            }
+        }
+        return true;
     }
 
     public ArrayList[][] getPossibleValuesArray(int[][] b) {
